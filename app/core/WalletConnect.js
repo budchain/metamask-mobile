@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/controllers/';
+import { Linking } from 'react-native';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -209,7 +210,7 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method && payload.method === 'eth_signTypedData') {
+				} else if (payload.method === 'eth_signTypedData' || payload.method === 'eth_signTypedData_v3') {
 					const { TypedMessageManager } = Engine.context;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -236,7 +237,7 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method && payload.method === 'eth_signTypedData_v4') {
+				} else if (payload.method === 'eth_signTypedData_v4') {
 					const { TypedMessageManager } = Engine.context;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -352,7 +353,10 @@ class WalletConnect {
 	redirectIfNeeded = () => {
 		if (this.redirectUrl) {
 			setTimeout(() => {
-				hub.emit('walletconnect:return');
+				// We checked all subscriptions and there is no subscription for 'walletconnect:return'
+				// at this point it makes no sense to emit this event, so we add a line to follow redirect link as it was expected
+				// hub.emit('walletconnect:return');
+				Linking.openURL(this.redirectUrl);
 			}, 1500);
 		}
 	};
